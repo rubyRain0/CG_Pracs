@@ -12,7 +12,7 @@
 int main(int argc, char* argv[]) {
 
  
-    int choice = 8;
+    int choice = 7;
 
     switch (choice) {
     case 1:
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     case 6:
         return twoTextureSquare(argc, argv);
     case 7:
-        return cubeAndLightMain(argc, argv); //setVec3 not found, shader issue (lines160-162)
+        return cubeAndLightMain(argc, argv); 
     case 8:
         return cubeTextureMain(argc, argv);
     default:

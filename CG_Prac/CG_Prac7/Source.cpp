@@ -1,32 +1,47 @@
-п»ї// Ligth_two_Cube_2.cpp : Р­С‚РѕС‚ С„Р°Р№Р» СЃРѕРґРµСЂР¶РёС‚ С„СѓРЅРєС†РёСЋ "main". Р—РґРµСЃСЊ РЅР°С‡РёРЅР°РµС‚СЃСЏ Рё Р·Р°РєР°РЅС‡РёРІР°РµС‚СЃСЏ РІС‹РїРѕР»РЅРµРЅРёРµ РїСЂРѕРіСЂР°РјРјС‹.
+// Ligth_two_Cube_2.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
 //
-#include "CubeAndLight.h"
+
+#include <iostream>
+
+#include<GL/glew.h>
+#include<gl/glew.h>
+#include<GL/glut.h>
+#include <GLFW/glfw3.h>
+//#include "stb_image.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "shader_s.h"
+#include "camera.h"
+#include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 
-// РљРѕРЅСЃС‚Р°РЅС‚С‹
+
+// Константы
 const unsigned int SCR_WIDTH = 600;
 const unsigned int SCR_HEIGHT = 400;
 
-// РљР°РјРµСЂР°
+// Камера
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-// РўР°Р№РјРёРЅРіРё
+// Тайминги
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// РћСЃРІРµС‰РµРЅРёРµ
+// Освещение
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
-int cubeAndLightMain(int argc, char* argv[])
+int main()
 {
-	// glfw: РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ Рё РєРѕРЅС„РёРіСѓСЂРёСЂРѕРІР°РЅРёРµ
+	// glfw: инициализация и конфигурирование
 //	glfwInit();
 	if (!glfwInit()) {
 		fprintf(stderr, "ERROR: could not start GLFW3\n");
@@ -36,9 +51,9 @@ int cubeAndLightMain(int argc, char* argv[])
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	
 
-	// glfw: СЃРѕР·РґР°РЅРёРµ РѕРєРЅР°
+
+	// glfw: создание окна
 	GLFWwindow* window = glfwCreateWindow(1100, 800, "Hello Cube", nullptr, 0);
 	if (!window)
 	{
@@ -47,25 +62,25 @@ int cubeAndLightMain(int argc, char* argv[])
 		return 1;
 	}
 	glfwMakeContextCurrent(window);
-	
+
 	glewExperimental = GL_TRUE;
-     glewInit();
+	glewInit();
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
-	// РЎРѕРѕР±С‰Р°РµРј GLFW, С‡С‚РѕР±С‹ РѕРЅ Р·Р°С…РІР°С‚РёР» РЅР°С€ РєСѓСЂСЃРѕСЂ
+	// Сообщаем GLFW, чтобы он захватил наш курсор
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
-	// РљРѕРЅС„РёРіСѓСЂРёСЂРѕРІР°РЅРёРµ РіР»РѕР±Р°Р»СЊРЅРѕРіРѕ СЃРѕСЃС‚РѕСЏРЅРёСЏ OpenGL
+	// Конфигурирование глобального состояния OpenGL
 	glEnable(GL_DEPTH_TEST);
 
-	// РљРѕРјРїРёР»РёСЂРѕРІР°РЅРёРµ РЅР°С€РµР№ С€РµР№РґРµСЂРЅРѕР№ РїСЂРѕРіСЂР°РјРјС‹
-	Shader lightingShader("CG_Prac7/basic_lighting.vs", "CG_Prac7/basic_lighting.fs");
-	Shader lampShader("CG_Prac7/lamp.vs", "CG_Prac7/lamp.fs");
+	// Компилирование нашей шейдерной программы
+	Shader lightingShader("basic_lighting.vs", "basic_lighting.fs");
+	Shader lampShader("lamp.vs", "lamp.fs");
 
-	// РЈРєР°Р·Р°РЅРёРµ РІРµСЂС€РёРЅ (Рё Р±СѓС„РµСЂР°(РѕРІ)) Рё РЅР°СЃС‚СЂРѕР№РєР° РІРµСЂС€РёРЅРЅС‹С… Р°С‚СЂРёР±СѓС‚РѕРІ
+	// Указание вершин (и буфера(ов)) и настройка вершинных атрибутов
 	float vertices[] = {
 			-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 			 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -110,7 +125,7 @@ int cubeAndLightMain(int argc, char* argv[])
 			-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 	};
 
-	// 1. РќР°СЃС‚СЂР°РёРІР°РµРј VAO (Рё VBO) РєСѓР±Р°
+	// 1. Настраиваем VAO (и VBO) куба
 	unsigned int VBO, cubeVAO;
 	glGenVertexArrays(1, &cubeVAO);
 	glGenBuffers(1, &VBO);
@@ -120,90 +135,90 @@ int cubeAndLightMain(int argc, char* argv[])
 
 	glBindVertexArray(cubeVAO);
 
-	// РљРѕРѕСЂРґРёРЅР°С‚РЅС‹Рµ Р°С‚СЂРёР±СѓС‚С‹
+	// Координатные атрибуты
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	// РђС‚СЂРёР±СѓС‚С‹ РЅРѕСЂРјР°Р»РµР№
+	// Атрибуты нормалей
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	// 2. РќР°СЃС‚СЂР°РёРІР°РµРј VAO СЃРІРµС‚Р° (VBO РѕСЃС‚Р°РµС‚СЃСЏ РЅРµРёР·РјРµРЅРЅС‹Рј; РІРµСЂС€РёРЅС‹ С‚Рµ Р¶Рµ Рё РґР»СЏ СЃРІРµС‚РѕРІРѕРіРѕ РѕР±СЉРµРєС‚Р°, РєРѕС‚РѕСЂС‹Р№ С‚Р°РєР¶Рµ СЏРІР»СЏРµС‚СЃСЏ 3D-РєСѓР±РѕРј)
+	// 2. Настраиваем VAO света (VBO остается неизменным; вершины те же и для светового объекта, который также является 3D-кубом)
 	unsigned int lightVAO;
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	// РћР±СЂР°С‚РёС‚Рµ РІРЅРёРјР°РЅРёРµ, С‡С‚Рѕ РјС‹ РѕР±РЅРѕРІР»СЏРµРј С€Р°Рі Р°С‚СЂРёР±СѓС‚Р° РїРѕР»РѕР¶РµРЅРёСЏ Р»Р°РјРїС‹, С‡С‚РѕР±С‹ РѕС‚СЂР°Р·РёС‚СЊ РѕР±РЅРѕРІР»РµРЅРЅС‹Рµ РґР°РЅРЅС‹Рµ Р±СѓС„РµСЂР°
+	// Обратите внимание, что мы обновляем шаг атрибута положения лампы, чтобы отразить обновленные данные буфера
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 
-	// Р¦РёРєР» СЂРµРЅРґРµСЂРёРЅРіР°
+	// Цикл рендеринга
 	while (!glfwWindowShouldClose(window))
 	{
-		// Р›РѕРіРёС‡РµСЃРєР°СЏ С‡Р°СЃС‚СЊ СЂР°Р±РѕС‚С‹ СЃРѕ РІСЂРµРјРµРЅРµРј РґР»СЏ РєР°Р¶РґРѕРіРѕ РєР°РґСЂР°
+		// Логическая часть работы со временем для каждого кадра
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		// РћР±СЂР°Р±РѕС‚РєР° РІРІРѕРґР°
+		// Обработка ввода
 		processInput(window);
 
-		// Р РµРЅРґРµСЂРёРЅРі
+		// Рендеринг
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// РЈР±РµР¶РґР°РµРјСЃСЏ, С‡С‚Рѕ Р°РєС‚РёРІРёСЂРѕРІР°Р»Рё С€РµР№РґРµСЂ РїСЂРµР¶РґРµ, С‡РµРј РЅР°СЃС‚СЂР°РёРІР°С‚СЊ uniform-РїРµСЂРµРјРµРЅРЅС‹Рµ/РѕР±СЉРµРєС‚С‹_СЂРёСЃРѕРІР°РЅРёСЏ
+		// Убеждаемся, что активировали шейдер прежде, чем настраивать uniform-переменные/объекты_рисования
 		lightingShader.use();
 		lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
 		lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 		lightingShader.setVec3("lightPos", lightPos);
 
-		// РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ Р’РёРґР°/РџСЂРѕРµРєС†РёРё
+		// Преобразования Вида/Проекции
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 0.4f / 0.3f, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix();
 		lightingShader.setMat4("projection", projection);
 		lightingShader.setMat4("view", view);
 
-		// РњРёСЂРѕРІРѕРµ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ
+		// Мировое преобразование
 		glm::mat4 model = glm::mat4(1.0f);
 		lightingShader.setMat4("model", model);
 
-		// Р РµРЅРґРµСЂРёРЅРі РєСѓР±Р°
+		// Рендеринг куба
 		glBindVertexArray(cubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		// РўР°РєР¶Рµ РѕС‚СЂРёСЃРѕРІС‹РІР°РµРј РЅР°С€ РѕР±СЉРµРєС‚-"Р»Р°РјРїРѕС‡РєСѓ" 
+		// Также отрисовываем наш объект-"лампочку" 
 		lampShader.use();
 		lampShader.setMat4("projection", projection);
 		lampShader.setMat4("view", view);
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f)); // РєСѓР± РјРµРЅСЊС€РµРіРѕ СЂР°Р·РјРµСЂР°
+		model = glm::scale(model, glm::vec3(0.2f)); // куб меньшего размера
 		lampShader.setMat4("model", model);
 
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
-		// glfw: РѕР±РјРµРЅ СЃРѕРґРµСЂР¶РёРјС‹Рј front- Рё back- Р±СѓС„РµСЂРѕРІ. РћС‚СЃР»РµР¶РёРІР°РЅРёРµ СЃРѕР±С‹С‚РёР№ РІРІРѕРґР°/РІС‹РІРѕРґР° (Р±С‹Р»Р° Р»Рё РЅР°Р¶Р°С‚Р°/РѕС‚РїСѓС‰РµРЅР° РєРЅРѕРїРєР°, РїРµСЂРµРјРµС‰РµРЅ РєСѓСЂСЃРѕСЂ РјС‹С€Рё Рё С‚.Рї.)
+		// glfw: обмен содержимым front- и back- буферов. Отслеживание событий ввода/вывода (была ли нажата/отпущена кнопка, перемещен курсор мыши и т.п.)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	// РћРїС†РёРѕРЅР°Р»СЊРЅРѕ: РѕСЃРІРѕР±РѕР¶РґР°РµРј РІСЃРµ СЂРµСЃСѓСЂСЃС‹, РєР°Рє С‚РѕР»СЊРєРѕ РѕРЅРё РІС‹РїРѕР»РЅРёР»Рё СЃРІРѕРµ РїСЂРµРґРЅР°Р·РЅР°С‡РµРЅРёРµ
+	// Опционально: освобождаем все ресурсы, как только они выполнили свое предназначение
 	glDeleteVertexArrays(1, &cubeVAO);
 	glDeleteVertexArrays(1, &lightVAO);
 	glDeleteBuffers(1, &VBO);
 
-	// glfw: Р·Р°РІРµСЂС€РµРЅРёРµ, РѕСЃРІРѕР±РѕР¶РґРµРЅРёРµ РІСЃРµС… РІС‹РґРµР»РµРЅРЅС‹С… СЂР°РЅРµРµ GLFW-СЂРµcСѓСЂСЃРѕРІ
+	// glfw: завершение, освобождение всех выделенных ранее GLFW-реcурсов
 	glfwTerminate();
 	return 0;
 }
 
-// РћР±СЂР°Р±РѕС‚РєР° РІСЃРµС… СЃРѕР±С‹С‚РёР№ РІРІРѕРґР°: Р·Р°РїСЂРѕСЃ GLFW Рѕ РЅР°Р¶Р°С‚РёРё/РѕС‚РїСѓСЃРєР°РЅРёРё РєРЅРѕРїРєРё РјС‹С€Рё РІ РґР°РЅРЅРѕРј РєР°РґСЂРµ Рё СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰Р°СЏ РѕР±СЂР°Р±РѕС‚РєР° РґР°РЅРЅС‹С… СЃРѕР±С‹С‚РёР№
+// Обработка всех событий ввода: запрос GLFW о нажатии/отпускании кнопки мыши в данном кадре и соответствующая обработка данных событий
 void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -219,16 +234,16 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
-// glfw: РІСЃСЏРєРёР№ СЂР°Р·, РєРѕРіРґР° РёР·РјРµРЅСЏСЋС‚СЃСЏ СЂР°Р·РјРµСЂС‹ РѕРєРЅР° (РїРѕР»СЊР·РѕРІР°С‚РµР»РµРј РёР»Рё РѕРїРµСЂР°С†РёРѕРЅРЅРѕР№ СЃРёСЃС‚РµРјРѕР№), РІС‹Р·С‹РІР°РµС‚СЃСЏ РґР°РЅРЅР°СЏ callback-С„СѓРЅРєС†РёСЏ
+// glfw: всякий раз, когда изменяются размеры окна (пользователем или операционной системой), вызывается данная callback-функция
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	// РЈР±РµР¶РґР°РµРјСЃСЏ, С‡С‚Рѕ РѕРєРЅРѕ РїСЂРѕСЃРјРѕС‚СЂР° СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓРµС‚ РЅРѕРІС‹Рј СЂР°Р·РјРµСЂР°Рј РѕРєРЅР°.
-	// РћР±СЂР°С‚РёС‚Рµ РІРЅРёРјР°РЅРёРµ, С€РёСЂРёРЅР° Рё РІС‹СЃРѕС‚Р° Р±СѓРґСѓС‚ Р·РЅР°С‡РёС‚РµР»СЊРЅРѕ Р±РѕР»СЊС€Рµ, С‡РµРј СѓРєР°Р·Р°РЅРѕ, РЅР° Retina-РґРёСЃРїР»РµСЏС…
+	// Убеждаемся, что окно просмотра соответствует новым размерам окна.
+	// Обратите внимание, ширина и высота будут значительно больше, чем указано, на Retina-дисплеях
 	glViewport(0, 0, width, height);
 }
 
 
-// glfw: РІСЃСЏРєРёР№ СЂР°Р·, РєРѕРіРґР° РїРµСЂРµРјРµС‰Р°РµС‚СЃСЏ РјС‹С€СЊ, РІС‹Р·С‹РІР°РµС‚СЃСЏ РґР°РЅРЅР°СЏ callback-С„СѓРЅРєС†РёСЏ
+// glfw: всякий раз, когда перемещается мышь, вызывается данная callback-функция
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	if (firstMouse)
@@ -239,7 +254,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	}
 
 	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // РїРµСЂРµРІРµСЂРЅСѓС‚Рѕ, С‚Р°Рє РєР°Рє y-РєРѕРѕСЂРґРёРЅР°С‚С‹ РёРґСѓС‚ СЃРЅРёР·Сѓ РІРІРµСЂС…
+	float yoffset = lastY - ypos; // перевернуто, так как y-координаты идут снизу вверх
 
 	lastX = xpos;
 	lastY = ypos;
@@ -247,7 +262,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-// glfw: РІСЃСЏРєРёР№ СЂР°Р·, РєРѕРіРґР° РїСЂРѕРєСЂСѓС‡РёРІР°РµС‚СЃСЏ РєРѕР»РµСЃРёРєРѕ РјС‹С€Рё, РІС‹Р·С‹РІР°РµС‚СЃСЏ РґР°РЅРЅР°СЏ callback-С„СѓРЅРєС†РёСЏ
+// glfw: всякий раз, когда прокручивается колесико мыши, вызывается данная callback-функция
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(yoffset);
