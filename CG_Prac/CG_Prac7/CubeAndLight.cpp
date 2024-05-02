@@ -169,6 +169,8 @@ int cubeAndLightMain(int argc, char* argv[])
 
 		// Мировое преобразование
 		glm::mat4 model = glm::mat4(1.0f);
+		//model = glm::translate(model, glm::vec3(0.5f, 0.5f, 0.5f)); // Translate the cube by (0.5, 0.5, 0.5)
+		//model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 1.0f, 0.0f)); // Rotate the cube by 45 degrees around the (1, 1, 0) axis
 		lightingShader.setMat4("model", model);
 
 		// Рендеринг куба
